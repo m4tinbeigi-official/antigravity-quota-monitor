@@ -6,7 +6,9 @@
 
 > A seamless, native, Claude-style real-time quota indicator embedded directly into Google Antigravity's model selector.
 
-![Preview](preview.png)
+<p align="center">
+  <img src="preview.png" alt="Antigravity Quota Monitor" width="100%" style="border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" />
+</p>
 
 ---
 
