@@ -11,6 +11,7 @@ New-Item -ItemType Directory -Force -Path $TargetApp | Out-Null
 New-Item -ItemType Directory -Force -Path $TargetBin | Out-Null
 
 Copy-Item "$ScriptDir\antigravity_quota_injector.js" "$TargetApp\antigravity_quota_injector.js" -Force
+Copy-Item "$ScriptDir\antigravity_quota_injector.js" "$TargetBin\antigravity_quota_injector.js" -Force
 Copy-Item "$ScriptDir\quota_engine.py" "$TargetBin\quota_engine.py" -Force
 Copy-Item "$ScriptDir\sync_daemon.py" "$TargetBin\sync_daemon.py" -Force
 

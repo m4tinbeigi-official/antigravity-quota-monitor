@@ -11,6 +11,7 @@ mkdir -p "$TARGET_BIN"
 mkdir -p "$TARGET_APP"
 
 cp "$SCRIPT_DIR/antigravity_quota_injector.js" "$TARGET_APP/antigravity_quota_injector.js"
+cp "$SCRIPT_DIR/antigravity_quota_injector.js" "$TARGET_BIN/antigravity_quota_injector.js"
 cp "$SCRIPT_DIR/quota_engine.py" "$TARGET_BIN/quota_engine.py"
 cp "$SCRIPT_DIR/sync_daemon.py" "$TARGET_BIN/sync_daemon.py"
 chmod +x "$TARGET_BIN/quota_engine.py" "$TARGET_BIN/sync_daemon.py"
@@ -30,6 +31,11 @@ if [ "$OS" = "Darwin" ]; then
         <string>/usr/bin/python3</string>
         <string>$TARGET_BIN/sync_daemon.py</string>
     </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>

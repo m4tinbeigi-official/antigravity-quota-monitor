@@ -11,13 +11,44 @@ import json
 import urllib.request
 import platform
 import subprocess
+import shutil
 from pathlib import Path
+
+# Augment PATH so launchd / systemd / Windows services find node and user binaries
+EXTRA_PATHS = [
+    str(Path.home() / ".local" / "bin"),
+    "/usr/local/bin",
+    "/opt/homebrew/bin",
+    "/usr/bin",
+    "/bin",
+    "/usr/sbin",
+    "/sbin"
+]
+current_path = os.environ.get("PATH", "")
+os.environ["PATH"] = ":".join(EXTRA_PATHS) + ":" + current_path
 
 CURRENT_DIR = Path(__file__).resolve().parent
 if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
 import quota_engine
+
+def find_node_binary():
+    w = shutil.which("node")
+    if w:
+        return w
+    candidates = [
+        Path.home() / ".local" / "bin" / "node",
+        Path("/usr/local/bin/node"),
+        Path("/opt/homebrew/bin/node"),
+        Path("/usr/bin/node"),
+        Path("C:/Program Files/nodejs/node.exe"),
+        Path("C:/Program Files (x86)/nodejs/node.exe")
+    ]
+    for c in candidates:
+        if c.is_file() and os.access(c, os.X_OK):
+            return str(c)
+    return "node"
 
 def get_platform_paths():
     home = Path.home()
@@ -36,7 +67,18 @@ def get_platform_paths():
 
     global_quota = home / ".gemini" / "antigravity" / "active_quota.json"
     history = home / ".gemini" / "antigravity" / "quota_history.json"
+    
     injector = CURRENT_DIR / "antigravity_quota_injector.js"
+    if not injector.exists():
+        candidates = [
+            home / ".gemini" / "antigravity" / "bin" / "antigravity_quota_injector.js",
+            home / ".gemini" / "antigravity" / "antigravity_quota_injector.js"
+        ]
+        for c in candidates:
+            if c.exists():
+                injector = c
+                break
+
     return storage, devtools, global_quota, history, injector
 
 STORAGE_PATH, DEVTOOLS_PORT_PATH, GLOBAL_QUOTA_PATH, HISTORY_PATH, INJECTOR_PATH = get_platform_paths()
@@ -103,6 +145,8 @@ def inject_badge_via_devtools(port):
         if not pages:
             pages = [t for t in targets if t.get("type") == "page"]
 
+        node_bin = find_node_binary()
+
         for page in pages:
             ws_url = page.get("webSocketDebuggerUrl")
             if not ws_url:
@@ -124,7 +168,7 @@ def inject_badge_via_devtools(port):
             ws.onerror = () => process.exit(0);
             setTimeout(() => process.exit(0), 2000);
             """
-            subprocess.run(["node", "-e", node_cmd], capture_output=True, timeout=3)
+            subprocess.run([node_bin, "-e", node_cmd], capture_output=True, timeout=3)
     except Exception:
         pass
 
@@ -165,12 +209,13 @@ def sync_quota_once():
         inject_badge_via_devtools(port)
 
 def daemon_loop():
-    print("🚀 Antigravity Quota Monitor Daemon active.")
+    print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] 🚀 Antigravity Quota Monitor Daemon active.", flush=True)
     while True:
         try:
             sync_quota_once()
-        except Exception:
-            pass
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ⚡ Quota synced and injected.", flush=True)
+        except Exception as e:
+            print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ⚠️ Sync error: {e}", flush=True)
         time.sleep(25)
 
 if __name__ == "__main__":
