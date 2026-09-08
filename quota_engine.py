@@ -36,10 +36,15 @@ def get_keychain_token():
     system = get_current_system()
     if system == "macos":
         try:
-            cmd = ["security", "find-generic-password", "-s", "antigravity", "-w"]
+            cmd = ["security", "find-generic-password", "-s", "gemini", "-a", "antigravity", "-w"]
             res = subprocess.run(cmd, capture_output=True, text=True)
             if res.returncode == 0 and res.stdout.strip():
                 return res.stdout.strip()
+            # Fallback
+            cmd2 = ["security", "find-generic-password", "-s", "antigravity", "-w"]
+            res2 = subprocess.run(cmd2, capture_output=True, text=True)
+            if res2.returncode == 0 and res2.stdout.strip():
+                return res2.stdout.strip()
         except Exception:
             pass
     elif system == "windows":

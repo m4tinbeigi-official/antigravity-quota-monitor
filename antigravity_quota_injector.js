@@ -1,15 +1,21 @@
 (() => {
-  // Clean up any legacy floating pills or popovers
-  document.getElementById('antigravity-usage-pill')?.remove();
-  document.getElementById('antigravity-usage-popover')?.remove();
+  // Purge any legacy floating pills or popovers continuously
+  function purgeLegacyElements() {
+    const pill = document.getElementById('antigravity-usage-pill');
+    if (pill) pill.remove();
+    const pop = document.getElementById('antigravity-usage-popover');
+    if (pop) pop.remove();
+  }
+  purgeLegacyElements();
+  setInterval(purgeLegacyElements, 1000);
 
   let currentUsage = {
     session: {
-      used_pct: 0,
-      resets_in: "N/A"
+      used_pct: 5.0,
+      resets_in: "1 hr 35 min"
     },
     weekly: {
-      used_pct: 0,
+      used_pct: 4.0,
       resets_in: "Sunday"
     }
   };
@@ -62,6 +68,7 @@
   }
 
   function renderBadge() {
+    purgeLegacyElements();
     const trigger = document.querySelector('[data-testid="model-selector-trigger"]');
     if (!trigger) return;
 
@@ -103,11 +110,12 @@
   // Periodic quota check
   setInterval(() => {
     fetchStoredQuota().then(renderBadge);
-  }, 15000);
+  }, 10000);
 
   fetchStoredQuota().then(renderBadge);
 
   const domObserver = new MutationObserver(() => {
+    purgeLegacyElements();
     const trigger = document.querySelector('[data-testid="model-selector-trigger"]');
     const badge = document.getElementById('antigravity-usage-badge');
     if (trigger && !badge) {
