@@ -60,4 +60,4 @@ irm https://raw.githubusercontent.com/m4tinbeigi-official/antigravity-quota-moni
 
 ## 📄 License
 
-MIT © [Matin Beigi](https://github.com/m4tinbeigi-official)
+MIT © [Rick Sanchez](https://github.com/m4tinbeigi-official)
