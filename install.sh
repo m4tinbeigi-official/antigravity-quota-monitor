@@ -1,6 +1,70 @@
 #!/usr/bin/env bash
 set -e
 
+# Support uninstall option
+if [ "$1" = "--uninstall" ] || [ "$1" = "-u" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd)"
+    if [ -n "$SCRIPT_DIR" ] && [ -f "$SCRIPT_DIR/uninstall.sh" ]; then
+        exec "$SCRIPT_DIR/uninstall.sh"
+    fi
+
+    echo "🗑️  Uninstalling Antigravity Quota Monitor..."
+    TARGET_BIN="$HOME/.gemini/antigravity/bin"
+    TARGET_APP="$HOME/.gemini/antigravity"
+
+    OS="$(uname -s)"
+    if [ "$OS" = "Darwin" ]; then
+        PLIST_PATH="$HOME/Library/LaunchAgents/com.antigravity.quotasync.plist"
+        if [ -f "$PLIST_PATH" ]; then
+            launchctl unload "$PLIST_PATH" 2>/dev/null || true
+            rm -f "$PLIST_PATH"
+        fi
+    elif [ "$OS" = "Linux" ]; then
+        SERVICE_PATH="$HOME/.config/systemd/user/antigravity-quota.service"
+        if [ -f "$SERVICE_PATH" ]; then
+            systemctl --user stop antigravity-quota.service 2>/dev/null || true
+            systemctl --user disable antigravity-quota.service 2>/dev/null || true
+            rm -f "$SERVICE_PATH"
+            systemctl --user daemon-reload 2>/dev/null || true
+        fi
+    fi
+
+    pkill -f "sync_daemon.py" 2>/dev/null || true
+
+    rm -f "$TARGET_APP/antigravity_quota_injector.js"
+    rm -f "$TARGET_BIN/antigravity_quota_injector.js"
+    rm -f "$TARGET_BIN/quota_engine.py"
+    rm -f "$TARGET_BIN/sync_daemon.py"
+    rm -f "$TARGET_APP/active_quota.json"
+    rm -f "$TARGET_APP/quota_history.json"
+    rm -f /tmp/agy_quota_sync.log /tmp/agy_quota_sync.err
+
+    if [ -d "$TARGET_BIN" ] && [ -z "$(ls -A "$TARGET_BIN" 2>/dev/null)" ]; then
+        rmdir "$TARGET_BIN" 2>/dev/null || true
+    fi
+
+    python3 -c '
+import json, platform
+from pathlib import Path
+home = Path.home()
+sys_name = platform.system().lower()
+storage = home / ("Library/Application Support" if "darwin" in sys_name else ".config") / "Antigravity/app_storage.json"
+if storage.exists():
+    try:
+        with open(storage, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if "antigravity:active_quota" in data:
+            del data["antigravity:active_quota"]
+            with open(storage, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2)
+    except Exception:
+        pass
+' 2>/dev/null || true
+
+    echo "🎉 Antigravity Quota Monitor has been completely uninstalled!"
+    exit 0
+fi
+
 echo "✨ Installing Antigravity Quota Monitor..."
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

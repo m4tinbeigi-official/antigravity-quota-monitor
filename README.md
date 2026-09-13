@@ -53,6 +53,33 @@ irm https://raw.githubusercontent.com/m4tinbeigi-official/antigravity-quota-moni
 
 ---
 
+## 🗑️ Uninstallation
+
+### macOS & Linux
+```bash
+curl -fsSL https://raw.githubusercontent.com/EhsanShahbazii/antigravity-quota-monitor/main/uninstall.sh | bash
+```
+
+Or if cloned locally:
+```bash
+chmod +x uninstall.sh
+./uninstall.sh
+# or: ./install.sh --uninstall
+```
+
+### Windows (PowerShell)
+```powershell
+irm https://raw.githubusercontent.com/EhsanShahbazii/antigravity-quota-monitor/main/uninstall.ps1 | iex
+```
+
+Or if cloned locally:
+```powershell
+.\uninstall.ps1
+# or: .\install.ps1 -Uninstall
+```
+
+---
+
 ## 🛠 How It Works
 
 1. **Native Background Daemon (`sync_daemon.py`)**:
